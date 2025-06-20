@@ -33,16 +33,17 @@
       }
 
       root.innerHTML = `
-        <h1>Keystone • ${id}</h1>
-        <div class="info">
-          <p><strong>Artist:</strong> ${entry.artist}</p>
-          <p><strong>Title:</strong> ${entry.title}</p>
-          <p><strong>Year:</strong> ${entry.year}</p>
-          <p><strong>Ownership:</strong> ${entry.ownership}</p>
-          <p><strong>Verified:</strong> ${entry.verified ? '✅ Verified' : '⚠️ Unverified'}</p> ${entry.image ? '<img src="${entry.image}" style="max-width:100%; margin-top:1em;">' : ''}
-        </div>
-        <p class="note">This is a prototype record.</p>
-      `;
+  <h1>Keystone • ${id}</h1>
+  <div class="info">
+    <p><strong>Artist:</strong> ${entry.artist}</p>
+    <p><strong>Title:</strong> ${entry.title}</p>
+    <p><strong>Year:</strong> ${entry.year}</p>
+    <p><strong>Ownership:</strong> ${entry.ownership}</p>
+    <p><strong>Verified:</strong> ${entry.verified ? '✅ Verified' : '⚠️ Unverified'}</p>
+    ${entry.image ? `<img src="${entry.image}" style="max-width:100%; margin-top:1em;">` : ''}
+  </div>
+  <p class="note">This is a prototype record served from JSON.</p>
+`;
     }
     main();
   </script>
