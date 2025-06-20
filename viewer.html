@@ -7,7 +7,7 @@
       body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
       h1 { margin-bottom: 0; }
       .info p { margin: 0.3em 0; }
-      .note { colour: #666; font-size: 0.9em }
+      .note { colour: #666; font-size: 0.9em; }
     </style>
   </head>
   <body>
@@ -28,7 +28,7 @@
 
         const root = document.getElementById('content');
         if (!entry) {
-          root.innerHTML = <h2>No record found for ID: ${id}</h2>
+          root.innerHTML = <h2>No record found for ID: ${id}</h2> ;
           return;
         }
 
