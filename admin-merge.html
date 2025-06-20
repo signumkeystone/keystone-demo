@@ -51,9 +51,19 @@
     document.getElementById('mergeBtn').addEventListener('click', async () => {
       try {
         baseRegistry = await loadRegistry();
-        const key = Object.keys(submissionData)[0];
-        if (key in baseRegistry && !confirm(`⚠️ Entry "${key}" already exists. Overwrite?`)) return;
-        const merged = { ...baseRegistry, ...submissionData };
+        const keys = Object.keys(submissionData);
+let merged = { ...baseRegistry };
+
+keys.forEach(key => {
+  if (key in baseRegistry) {
+    const confirmOverwrite = confirm(`⚠️ Entry "${key}" already exists. Overwrite?`);
+    if (confirmOverwrite) {
+      merged[key] = submissionData[key];
+    } // otherwise skip
+  } else {
+    merged[key] = submissionData[key];
+  }
+});
         document.getElementById('preview').textContent = JSON.stringify(merged, null, 2);
         document.getElementById('copyBtn').disabled = false;
         document.getElementById('downloadBtn').disabled = false;
