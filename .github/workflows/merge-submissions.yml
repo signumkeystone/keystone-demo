@@ -1,0 +1,47 @@
+name: Merge Submissions to Registry
+
+on:
+  push:
+    paths:
+      - 'pending-submissions/*.json'
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Merge all pending submissions
+        run: |
+          echo "Reading registry..."
+          cp registry.json merged.json
+          for f in pending-submissions/*.json; do
+            echo "Merging $f"
+            node -e "
+              const fs = require('fs');
+              const merged = JSON.parse(fs.readFileSync('merged.json'));
+              const update = JSON.parse(fs.readFileSync('$f'));
+              Object.keys(update).forEach(k => {
+                if (!merged[k]) merged[k] = update[k];
+              });
+              fs.writeFileSync('merged.json', JSON.stringify(merged, null, 2));
+            "
+          done
+
+      - name: Replace registry
+        run: mv merged.json registry.json
+
+      - name: Commit updated registry
+        run: |
+          git config user.name 'Keystone Bot'
+          git config user.email 'keystone-bot@users.noreply.github.com'
+          git add registry.json
+          git rm pending-submissions/*.json || true
+          git commit -m '🔁 Auto-merge pending submissions into registry'
+          git push
