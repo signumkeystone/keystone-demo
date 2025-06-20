@@ -94,6 +94,11 @@
 
     form.addEventListener('input', updateOutput);
     updateOutput();
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(output.textContent)
+      .then(() => alert('✅ Copied to clipboard'))
+      .catch(err => alert('⚠️ Copy failed'));
+    });
   </script>
 
 </body>
