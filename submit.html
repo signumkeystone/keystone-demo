@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keystone • Artwork Submission</title>
+  <style>
+    body { font-family: sans-serif; max-width:700px; margin:auto; padding:2em; background:#f9f9f9; }
+    label { display:block; margin:1em 0 0.5em; font-weight:bold; }
+    input, select, textarea { width:100%; padding:0.5em; font-size:1em; }
+    .flex-row { display:flex; gap:0.5em; }
+    .half { flex:1; }
+    button { margin-top:1em; padding:0.6em 1.2em; font-size:1em; }
+    pre { background:#fff; border:1px solid #ddd; padding:1em; margin-top:1em; font-family:monospace; }
+  </style>
+</head>
+<body>
+
+  <h1>🎨 Artwork Submission Form</h1>
+
+  <form id="submitForm">
+    <label>Artist Name<input type="text" id="artist" required></label>
+    <label>Artwork Title<input type="text" id="title" required></label>
+    <label>Year<input type="text" id="year" required></label>
+    <label>Medium<input type="text" id="medium" required></label>
+
+    <label>Dimensions</label>
+    <div class="flex-row">
+      <input type="number" id="width" class="half" placeholder="Width" required>
+      <input type="number" id="height" class="half" placeholder="Height" required>
+      <select id="unit" class="half">
+        <option value="cm">cm</option>
+        <option value="in">in</option>
+      </select>
+    </div>
+
+    <label>Image URL<input type="url" id="image"></label>
+    <label>Ownership<input type="text" id="ownership" value="Self-registered"></label>
+    <label>Email (optional)<input type="email" id="email"></label>
+  </form>
+
+  <button id="generateBtn">Generate Submission</button>
+  <button id="copyBtn">Copy JSON</button>
+  <button id="downloadBtn">Download JSON File</button>
+
+  <pre id="outputBlock">{ … }</pre>
+
+  <script>
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function formatDimensions() {
+      const w = document.getElementById('width').value;
+      const h = document.getElementById('height').value;
+      const u = document.getElementById('unit').value;
+      return `${w} × ${h} ${u}`;
+    }
+
+    async function generateSubmission() {
+      const d = {
+        artist: document.getElementById('artist').value.trim(),
+        title: document.getElementById('title').value.trim(),
+        year: document.getElementById('year').value.trim(),
+        medium: document.getElementById('medium').value.trim(),
+        dimensions: formatDimensions(),
+        image: document.getElementById('image').value.trim() || '',
+        ownership: document.getElementById('ownership').value.trim(),
+        email: document.getElementById('email').value.trim()
+      };
+
+      const raw = `${d.artist}|${d.title}|${d.year}|${d.medium}|${d.dimensions}`;
+      d.hash = await sha256(raw);
+      d.created = new Date().toISOString();
+
+      const output = JSON.stringify(d, null, 2);
+      document.getElementById('outputBlock').textContent = output;
+      return { data: d, output };
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+      await generateSubmission();
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const { output } = await generateSubmission();
+      navigator.clipboard.writeText(output)
+        .then(() => alert('✅ Copied JSON to clipboard'))
+        .catch(() => alert('⚠️ Copy failed'));
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', async () => {
+      const { data } = await generateSubmission();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.title.replace(/\s+/g,'_').toLowerCase()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+  </script>
+
+</body>
+</html>
