@@ -1,0 +1,50 @@
+<!DOCTYPE hmtl>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Keystone Registry Viewer</title>
+    <style>
+      body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+      h1 { margin-bottom: 0; }
+      .info p { margin: 0.3em 0; }
+      .note { colour: #666; font-size: 0.9em }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Keystone Registry Viewer</h1>
+      <p>Use with URL ending in: <code>?id=keystone-XXXX</code></p>
+    </div>
+
+    <script>
+      async function main () {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (!id) return;
+
+        const res = await fetch('registry.json');
+        const registry = await res.json();
+        const entry = registry[id];
+
+        const root = document.getElementById('content');
+        if (!entry) {
+          root.innerHTML = <h2>No record found for ID: ${id}</h2>
+          return;
+        }
+
+        root.innerHTML =
+          <h1>Keystone • ${id}</h1>
+        <div class="info">
+          <p><strong>Artist:</strong> ${entry.artist}</p>
+          <p><strong>Title:</strong> ${entry.title}</p>
+          <p><strong>Year:</strong> ${entry.year}</p>
+          <p><strong>Ownership:</strong> ${entry.ownership}</p>
+          <p><strong>Verified:</strong> ${entry.verified ? 'Yes' : 'No'}</p>
+          </div>
+        <p class="note">This is a prototype record.</p>
+        ;
+      }
+      main ();
+    </script>
+  </body>
+</html>
