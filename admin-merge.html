@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keystone • Admin Merge Tool</title>
+  <style>
+    body { font-family:sans-serif; max-width:800px; margin:auto; padding:2em; background:#eef; }
+    label { display:block; margin:1em 0 0.3em; font-weight:bold; }
+    input[type=file] { display:block; margin-bottom:1em; }
+    button { margin:0.6em 0.4em; padding:0.6em 1.2em; font-size:1em; }
+    pre { background:#fff; border:1px solid #ccc; padding:1em; font-family:monospace; max-height:400px; overflow:auto; }
+  </style>
+</head>
+<body>
+
+  <h1>🔧 Keystone Admin Merge Tool</h1>
+
+  <p><strong>Step 1:</strong> Upload your artwork submission JSON (downloaded from the artist form).</p>
+  <input type="file" id="fileInput" accept=".json">
+
+  <button id="mergeBtn" disabled>Merge with Registry</button>
+
+  <h2>Merged `registry.json` Preview</h2>
+  <pre id="preview">— not yet merged —</pre>
+
+  <button id="copyBtn" disabled>Copy New Registry to Clipboard</button>
+  <button id="downloadBtn" disabled>Download New Registry File</button>
+
+  <script>
+    let submissionData, baseRegistry;
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      file.text().then(txt => {
+        try {
+          submissionData = JSON.parse(txt);
+          document.getElementById('mergeBtn').disabled = false;
+        } catch (err) {
+          alert('❌ Invalid JSON: ' + err);
+        }
+      });
+    });
+
+    async function loadRegistry() {
+      const res = await fetch('registry.json');
+      if (!res.ok) throw new Error('Cannot load registry.json');
+      return res.json();
+    }
+
+    document.getElementById('mergeBtn').addEventListener('click', async () => {
+      try {
+        baseRegistry = await loadRegistry();
+        const key = Object.keys(submissionData)[0];
+        if (key in baseRegistry && !confirm(`⚠️ Entry "${key}" already exists. Overwrite?`)) return;
+        const merged = { ...baseRegistry, ...submissionData };
+        document.getElementById('preview').textContent = JSON.stringify(merged, null, 2);
+        document.getElementById('copyBtn').disabled = false;
+        document.getElementById('downloadBtn').disabled = false;
+      } catch (err) {
+        alert('❌ Load failed: ' + err);
+      }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const txt = document.getElementById('preview').textContent;
+      navigator.clipboard.writeText(txt).then(() => alert('✅ Copied registry to clipboard'));
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const txt = document.getElementById('preview').textContent;
+      const blob = new Blob([txt], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'registry.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+
+</body>
+</html>
