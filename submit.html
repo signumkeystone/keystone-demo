@@ -4,135 +4,102 @@
   <meta charset="UTF-8">
   <title>Keystone • Artwork Submission</title>
   <style>
-    body { font-family: sans-serif; max-width:700px; margin:auto; padding:2em; background:#f9f9f9; }
-    label { display:block; margin:1em 0 0.5em; font-weight:bold; }
-    input, select, textarea { width:100%; padding:0.5em; font-size:1em; }
-    .flex-row { display:flex; gap:0.5em; }
-    .half { flex:1; }
-    button { margin-top:1em; padding:0.6em 1.2em; font-size:1em; }
-    pre { background:#fff; border:1px solid #ddd; padding:1em; margin-top:1em; font-family:monospace; }
+    body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 2em; background: #f4f4f8; }
+    h1 { font-size: 1.6em; }
+    label { display: block; margin-top: 1em; font-weight: bold; }
+    input, select { width: 100%; padding: 0.4em; font-size: 1em; margin-top: 0.3em; }
+    button { margin-top: 1.5em; padding: 0.7em 1.4em; font-size: 1em; }
+    pre { background: #fff; border: 1px solid #ccc; padding: 1em; white-space: pre-wrap; word-break: break-word; margin-top: 1em; max-height: 400px; overflow: auto; }
   </style>
 </head>
 <body>
 
-  <h1>🎨 Artwork Submission Form</h1>
+  <h1>🎨 Submit an Artwork to the Keystone Registry</h1>
 
-  <form id="submitForm">
-    <label>Artist Name<input type="text" id="artist" required></label>
-    <label>Artwork Title<input type="text" id="title" required></label>
-    <label>Year<input type="text" id="year" required></label>
-    <label>Medium<input type="text" id="medium" required></label>
+  <label for="artist">Artist Name</label>
+  <input id="artist" type="text" placeholder="e.g. A.M.J. Walker" />
 
-    <label>Dimensions</label>
-    <div class="flex-row">
-      <input type="number" id="width" class="half" placeholder="Width" required>
-      <input type="number" id="height" class="half" placeholder="Height" required>
-      <select id="unit" class="half">
-        <option value="cm">cm</option>
-        <option value="in">in</option>
-      </select>
-    </div>
+  <label for="title">Title of Work</label>
+  <input id="title" type="text" placeholder="e.g. Childhood Ephemera" />
 
-    <label>Image URL<input type="url" id="image"></label>
-    <label>Ownership<input type="text" id="ownership" value="Self-registered"></label>
-    <label>Email (optional)<input type="email" id="email"></label>
-  </form>
+  <label for="year">Year</label>
+  <input id="year" type="text" placeholder="e.g. 2025" />
 
-  <button id="generateBtn">Generate Submission</button>
-  <button id="copyBtn">Copy JSON</button>
-  <button id="downloadBtn">Download JSON File</button>
+  <label for="medium">Medium</label>
+  <input id="medium" type="text" placeholder="e.g. Oil on canvas" />
 
-  <pre id="outputBlock">{ … }</pre>
+  <label>Dimensions</label>
+  <input id="width" type="text" placeholder="Width" style="width: 32%; display: inline-block;" />
+  <input id="height" type="text" placeholder="Height" style="width: 32%; display: inline-block; margin-left: 2%;" />
+  <select id="unit" style="width: 32%; display: inline-block; margin-left: 2%;">
+    <option value="cm">cm</option>
+    <option value="in">in</option>
+  </select>
+
+  <label for="image">Image URL</label>
+  <input id="image" type="text" placeholder="Direct link to image" />
+
+  <label for="ownership">Ownership (optional)</label>
+  <input id="ownership" type="text" placeholder="e.g. Self-registered" />
+
+  <button onclick="generateSubmission()">Generate Submission</button>
+
+  <pre id="outputBlock">— output will appear here —</pre>
+
+  <button id="downloadBtn">Download JSON</button>
 
   <script>
-    async function sha256(str) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    function generateSubmission() {
+      const artist = document.getElementById('artist').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const year = document.getElementById('year').value.trim();
+      const medium = document.getElementById('medium').value.trim();
+      const width = document.getElementById('width').value.trim();
+      const height = document.getElementById('height').value.trim();
+      const unit = document.getElementById('unit').value.trim();
+      const image = document.getElementById('image').value.trim();
+      const owner = document.getElementById('ownership').value.trim() || 'Self-registered';
+
+      const dimensions = `${width} × ${height} ${unit}`;
+      const created = new Date().toISOString();
+
+      const hashString = `${artist}|${title}|${year}|${medium}|${dimensions}`;
+      const hashBuffer = new TextEncoder().encode(hashString);
+      crypto.subtle.digest('SHA-256', hashBuffer).then(buffer => {
+        const hashArray = Array.from(new Uint8Array(buffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        const d = {
+          artist,
+          title,
+          year,
+          medium,
+          dimensions,
+          ownership: owner,
+          image,
+          verified: false,
+          created,
+          hash: hashHex
+        };
+
+        const clean = str => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const id = `keystone-${clean(title).slice(0, 5)}-${clean(artist).slice(0, 4)}`;
+
+        const entry = { [id]: d };
+
+        document.getElementById('outputBlock').textContent = JSON.stringify(entry, null, 2);
+      });
     }
 
-    function formatDimensions() {
-      const w = document.getElementById('width').value;
-      const h = document.getElementById('height').value;
-      const u = document.getElementById('unit').value;
-      return `${w} × ${h} ${u}`;
-    }
-
-    a<script>
-  function generateSubmission() {
-    const artist = document.getElementById('artist').value.trim();
-    const title = document.getElementById('title').value.trim();
-    const year = document.getElementById('year').value.trim();
-    const medium = document.getElementById('medium').value.trim();
-    const width = document.getElementById('width').value.trim();
-    const height = document.getElementById('height').value.trim();
-    const unit = document.getElementById('unit').value.trim();
-    const image = document.getElementById('image').value.trim();
-    const owner = document.getElementById('ownership').value.trim() || 'Self-registered';
-
-    const dimensions = `${width} × ${height} ${unit}`;
-    const created = new Date().toISOString();
-
-    // Create a canonical string for hashing
-    const hashString = `${artist}|${title}|${year}|${medium}|${dimensions}`;
-    const hashBuffer = new TextEncoder().encode(hashString);
-    crypto.subtle.digest('SHA-256', hashBuffer).then(buffer => {
-      const hashArray = Array.from(new Uint8Array(buffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const d = {
-        artist,
-        title,
-        year,
-        medium,
-        dimensions,
-        ownership: owner,
-        image,
-        verified: false,
-        created,
-        hash: hashHex
-      };
-
-      // Generate a Keystone ID from title and artist
-      const clean = str => str.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const id = `keystone-${clean(title).slice(0,5)}-${clean(artist).slice(0,4)}`;
-
-      const entry = { [id]: d };
-
-      document.getElementById('outputBlock').textContent = JSON.stringify(entry, null, 2);
-    });
-  }
-</script>
-
-      const raw = `${d.artist}|${d.title}|${d.year}|${d.medium}|${d.dimensions}`;
-      d.hash = await sha256(raw);
-      d.created = new Date().toISOString();
-
-      const output = JSON.stringify(d, null, 2);
-      document.getElementById('outputBlock').textContent = output;
-      return { data: d, output };
-    }
-
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-      await generateSubmission();
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', async () => {
-      const { output } = await generateSubmission();
-      navigator.clipboard.writeText(output)
-        .then(() => alert('✅ Copied JSON to clipboard'))
-        .catch(() => alert('⚠️ Copy failed'));
-    });
-
-    document.getElementById('downloadBtn').addEventListener('click', async () => {
-      const { data } = await generateSubmission();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const raw = document.getElementById('outputBlock').textContent;
+      const blob = new Blob([raw], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${data.title.replace(/\s+/g,'_').toLowerCase()}.json`;
-      document.body.appendChild(a);
+      a.download = 'submission.json';
       a.click();
-      a.remove();
+      URL.revokeObjectURL(url);
     });
   </script>
 
