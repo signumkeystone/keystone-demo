@@ -7,7 +7,9 @@
     "year": 2025,
     "ownership": "Self-registered",
     "verified": false,
-    "image": "https://signumkeystone.github.io/keystone-demo/images/Childhood-Ephemera.jpg"
+    "image": "https://signumkeystone.github.io/keystone-demo/images/Childhood-Ephemera.jpg",
+    "created": "2025-06-20T10:15:00z",
+    "hash": "a3d9f98c2e3a3cfb2f4d8b6eaf01f947a4ed3f99"
   },
   "keystone-0013-amjw": {
     "artist": "A.M.J. Walker",
