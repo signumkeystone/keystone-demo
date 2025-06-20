@@ -4,43 +4,35 @@
   <meta charset="UTF-8">
   <title>Keystone • Hash Generator</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; max-width: 700px; margin: auto; background: #f8f8f8; }
-    label { display: block; margin-top: 1em; font-weight: bold; }
-    input, textarea { width: 100%; padding: 0.5em; font-size: 1em; margin-top: 0.2em; }
-    textarea { height: 100px; }
-    .output { background: #fff; padding: 1em; border-radius: 4px; margin-top: 2em; border: 1px solid #ccc; }
-    code { font-family: monospace; background: #eee; padding: 0.1em 0.3em; border-radius: 3px; }
+    body { font-family: sans-serif; padding:2em; max-width:700px; margin:auto; background:#f2f2f2; }
+    label { display:block; margin-top:1em; }
+    input, select { width:100%; padding:0.4em; margin-top:0.2em; }
+    textarea, pre { width:100%; margin-top:1em; font-family:monospace; padding:0.6em; background:#fff; border:1px solid #ccc; border-radius:4px; }
+    button { margin:0.8em 0.4em 0; padding:0.6em 1.2em; font-size:1em; }
   </style>
 </head>
 <body>
-
   <h1>Keystone • Artwork Hash Generator</h1>
 
-  <form id="hashForm">
-    <label>Keystone ID
-      <input type="text" id="id" required>
-    </label>
-    <label>Artist
-      <input type="text" id="artist" required>
-    </label>
-    <label>Title
-      <input type="text" id="title" required>
-    </label>
-    <label>Year
-      <input type="text" id="year" required>
-    </label>
-    <label>Medium
-      <input type="text" id="medium">
-    </label>
+  <form id="form">
+    <label>Keystone ID<input type="text" id="id" required></label>
+    <label>Artist<input type="text" id="artist" required></label>
+    <label>Title<input type="text" id="title" required></label>
+    <label>Year<input type="text" id="year" required></label>
+    <label>Medium<input type="text" id="medium" required></label>
+
     <label>Dimensions
-      <input type="text" id="dimensions">
+      <div style="display:flex; gap:0.5em;">
+        <input type="number" id="width" placeholder="Width" required style="flex:1;">
+        <input type="number" id="height" placeholder="Height" required style="flex:1;">
+        <select id="unit">
+          <option value="cm">cm</option>
+          <option value="in">in</option>
+        </select>
+      </div>
     </label>
-    <label>Ownership
-      <input type="text" id="ownership" value="Self-registered">
-    </label>
-    <label>Image URL
-      <input type="url" id="image">
-    </label>
+    <label>Ownership<input type="text" id="ownership" value="Self-registered"></label>
+    <label>Image URL<input type="url" id="image"></label>
     <label>Verified?
       <select id="verified">
         <option value="false" selected>No</option>
@@ -49,57 +41,85 @@
     </label>
   </form>
 
-  <div class="output">
-    <h2>Generated Entry</h2>
-    <pre id="output">{ ... }</pre>
-    <button id="copyBtn" style="margin-top: 1em;">Copy JSON to Clipboard</button>
-  </div>
+  <button id="genBtn">Generate Hash</button>
+  <button id="copyVerifierBtn">Copy for Verifier</button>
+  <button id="downloadBtn">Download Full Entry</button>
+
+  <pre id="verifierBlock">Generate to see JSON.</pre>
+  <pre id="fullBlock">Generate to see full registry entry.</pre>
 
   <script>
-    const form = document.getElementById('hashForm');
-    const output = document.getElementById('output');
+    const fields = ['artist','title','year','medium','width','height','unit'];
+    const ownership = document.getElementById('ownership');
+    const image = document.getElementById('image');
+    const verified = document.getElementById('verified');
 
-    async function generateHash(text) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(text);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
-    async function updateOutput() {
-      const id = document.getElementById('id').value.trim();
-      const artist = document.getElementById('artist').value.trim();
-      const title = document.getElementById('title').value.trim();
-      const year = document.getElementById('year').value.trim();
-      const medium = document.getElementById('medium').value.trim();
-      const dimensions = document.getElementById('dimensions').value.trim();
-      const ownership = document.getElementById('ownership').value.trim();
-      const image = document.getElementById('image').value.trim();
-      const verified = document.getElementById('verified').value === "true";
+    function formatDimensions() {
+      const w = document.getElementById('width').value;
+      const h = document.getElementById('height').value;
+      const u = document.getElementById('unit').value;
+      return `${w} × ${h} ${u}`;
+    }
 
-      const dataToHash = `${artist}|${title}|${year}|${medium}|${dimensions}`;
-      const hash = await generateHash(dataToHash);
-      const created = new Date().toISOString();
+    async function generate() {
+      const prefix = document.getElementById('id').value.trim();
+      const d = {
+        artist: document.getElementById('artist').value.trim(),
+        title: document.getElementById('title').value.trim(),
+        year: document.getElementById('year').value.trim(),
+        medium: document.getElementById('medium').value.trim(),
+        dimensions: formatDimensions(),
+        ownership: ownership.value.trim(),
+        image: image.value.trim(),
+        verified: verified.value === 'true',
+        created: new Date().toISOString()
+      };
+      const raw = `${d.artist}|${d.title}|${d.year}|${d.medium}|${d.dimensions}`;
+      d.hash = await sha256(raw);
 
-      const record = {
-        [id]: {
-          artist, title, year, medium, dimensions,
-          ownership, image, verified, created, hash
-        }
+      const verifierJson = {
+        artist: d.artist,
+        title: d.title,
+        year: d.year,
+        medium: d.medium,
+        dimensions: d.dimensions,
+        hash: d.hash
       };
 
-      output.textContent = JSON.stringify(record, null, 2);
+      document.getElementById('verifierBlock').textContent = JSON.stringify(verifierJson, null, 2);
+
+      const fullEntry = { [prefix]: d };
+      document.getElementById('fullBlock').textContent = JSON.stringify(fullEntry, null, 2);
+
+      return { verifierJson, fullEntry, prefix };
     }
 
-    form.addEventListener('input', updateOutput);
-    updateOutput();
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      navigator.clipboard.writeText(output.textContent)
-      .then(() => alert('✅ Copied to clipboard'))
-      .catch(err => alert('⚠️ Copy failed'));
+    document.getElementById('genBtn').addEventListener('click', generate);
+
+    document.getElementById('copyVerifierBtn').addEventListener('click', async () => {
+      const { verifierJson } = await generate();
+      navigator.clipboard.writeText(JSON.stringify(verifierJson, null, 2))
+        .then(() => alert('Copied minimal JSON for verifier'))
+        .catch(() => alert('Copy failed'));
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', async () => {
+      const { fullEntry, prefix } = await generate();
+      const blob = new Blob([JSON.stringify(fullEntry, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${prefix}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     });
   </script>
-
 </body>
 </html>
