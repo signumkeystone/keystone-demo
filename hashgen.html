@@ -21,16 +21,17 @@
     <label>Year<input type="text" id="year" required></label>
     <label>Medium<input type="text" id="medium" required></label>
 
-    <label>Dimensions
-      <div style="display:flex; gap:0.5em;">
-        <input type="number" id="width" placeholder="Width" required style="flex:1;">
-        <input type="number" id="height" placeholder="Height" required style="flex:1;">
-        <select id="unit">
-          <option value="cm">cm</option>
-          <option value="in">in</option>
-        </select>
-      </div>
-    </label>
+    <label>Dimensions (for hash string)
+  <div style="display:flex; flex-wrap:wrap; gap:0.5em; margin-top:0.3em;">
+    <input type="number" id="width" placeholder="Width" required style="width:100px;">
+    <input type="number" id="height" placeholder="Height" required style="width:100px;">
+    <select id="unit" style="width:80px;">
+      <option value="cm">cm</option>
+      <option value="in">in</option>
+    </select>
+    <span style="line-height:2em;">→ <strong id="dimPreview"></strong></span>
+  </div>
+</label>
     <label>Ownership<input type="text" id="ownership" value="Self-registered"></label>
     <label>Image URL<input type="url" id="image"></label>
     <label>Verified?
@@ -120,6 +121,15 @@
       a.remove();
       URL.revokeObjectURL(url);
     });
+    function updateDimPreview() {
+  const w = document.getElementById('width').value;
+  const h = document.getElementById('height').value;
+  const u = document.getElementById('unit').value;
+  document.getElementById('dimPreview').textContent = w && h ? `${w} × ${h} ${u}` : '';
+}
+['width','height','unit'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateDimPreview);
+});
   </script>
 </body>
 </html>
