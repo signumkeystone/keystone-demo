@@ -18,7 +18,58 @@
   <div id="pendingArea">Loading…</div>
 
   <script>
-    // Code will go here
+   const username = "signumkeystone";
+  const repo = "keystone-demo";
+
+  const loadJSON = async (url) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`❌ Failed to load: ${url}`);
+    return res.json();
+  };
+
+  async function listPendingSubmissions() {
+    const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/submissions`);
+    if (!res.ok) throw new Error("❌ Cannot list submissions folder");
+    const files = await res.json();
+    const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+    return jsonFiles;
+  }
+
+  async function loadAndDisplayNext() {
+    document.getElementById("pendingArea").textContent = "🔍 Checking for unmerged submissions…";
+    const registry = await loadJSON("registry.json");
+    const pending = await listPendingSubmissions();
+
+    for (const file of pending) {
+      const raw = await fetch(file.download_url).then(res => res.text());
+      const submission = JSON.parse(raw);
+      const key = Object.keys(submission)[0];
+
+      if (registry[key]) continue; // Already merged
+
+      showPending(submission, file.name, key, registry);
+      return;
+    }
+
+    document.getElementById("pendingArea").innerHTML = "✅ No pending submissions!";
+  }
+
+  function showPending(data, filename, key, registry) {
+    const area = document.getElementById("pendingArea");
+    area.innerHTML = `
+      <h2>🔄 Pending: <code>${key}</code></h2>
+      <pre>${JSON.stringify(data, null, 2)}</pre>
+      <button onclick="mergeSubmission('${filename}', '${key}')">✅ Merge</button>
+      <button onclick="skipSubmission()">⏭️ Skip</button>
+    `;
+    window.pendingSubmission = { data, filename, key, registry };
+  }
+
+  function skipSubmission() {
+    loadAndDisplayNext();
+  }
+
+  window.onload = loadAndDisplayNext;
   </script>
 
 </body>
