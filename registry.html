@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keystone • Registry Admin</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "...",
+      authDomain: "...",
+      projectId: "...",
+      appId: "..."
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <style>
+    body { font-family: sans-serif; max-width: 1000px; margin: auto; padding: 2em; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 0.5em; }
+    th { background: #f7f7f7; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body style="display:none">
+  <h1>🔍 Keystone Registry Admin</h1>
+  <p id="admin-info"></p>
+  <button onclick="logout()">Logout</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Artist</th><th>Title</th>
+        <th>Submitted by</th><th>Date</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="registry-table">
+      <!-- rows inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    const AUTHORIZED = ["you@yourdomain.com"]; // <— replace with your email(s)
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user || !AUTHORIZED.includes(user.email)) {
+        window.location.href = "login.html";
+      } else {
+        document.getElementById('admin-info').textContent = `Signed in as ${user.email}`;
+        document.body.style.display = "block";
+        loadRegistry();
+      }
+    });
+
+    function logout() {
+      firebase.auth().signOut().then(() => window.location.href = "login.html");
+    }
+
+    async function loadRegistry() {
+      try {
+        const res = await fetch("registry.json");
+        const data = await res.json();
+        const tbody = document.getElementById("registry-table");
+
+        Object.entries(data).forEach(([id, entry]) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${id}</td>
+            <td>${entry.artist}</td>
+            <td>${entry.title}</td>
+            <td>${entry.submitted_by || '—'}</td>
+            <td>${new Date(entry.created).toLocaleString()}</td>
+            <td>
+              <button onclick="deleteEntry('${id}')">🗑️ Delete</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        alert("Failed to load registry: " + err.message);
+      }
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm(`Delete entry ${id}? This is irreversible.`)) return;
+      // For now, simply alert — backend deletion logic to be added later
+      alert(`❌ Delete not yet implemented: ${id}`);
+    }
+  </script>
+</body>
+</html>
