@@ -32,5 +32,17 @@
   "ownership": "Self-registered",
   "email": "",
   "hash": "dc2d3f410b758bc3db6dcd0e9a1f7a27e6a39d331cf1ae1a35194567d1420f83",
-  "created": "2025-06-20T16:28:23.583Z"
+  "created": "2025-06-20T16:28:23.583Z",
+  "keystone-test-test": {
+    "artist": "test",
+    "title": "test",
+    "year": "test",
+    "medium": "test",
+    "dimensions": "test × test cm",
+    "ownership": "Self-registered",
+    "image": "",
+    "verified": false,
+    "created": "2025-06-21T09:04:20.811Z",
+    "hash": "5e6515e62bfbcb8498b901b131590ff178f8f1c6fc1e91f789bd53d31dc0f0e4"
+  }
 }
