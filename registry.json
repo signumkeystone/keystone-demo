@@ -33,16 +33,16 @@
   "email": "",
   "hash": "dc2d3f410b758bc3db6dcd0e9a1f7a27e6a39d331cf1ae1a35194567d1420f83",
   "created": "2025-06-20T16:28:23.583Z",
-  "keystone-test-test": {
-    "artist": "test",
-    "title": "test",
-    "year": "test",
-    "medium": "test",
-    "dimensions": "test × test cm",
+  "keystone-manin-amjw": {
+    "artist": "A.M.J. Walker",
+    "title": "Man in the mirror",
+    "year": "2025",
+    "medium": "Oil on wooden board",
+    "dimensions": "50 × 60 cm",
     "ownership": "Self-registered",
-    "image": "",
+    "image": "https://raw.githubusercontent.com/signumkeystone/keystone-demo/main/images/1750541462552-man-in-the-mirror.jpg",
     "verified": false,
-    "created": "2025-06-21T09:04:20.811Z",
-    "hash": "5e6515e62bfbcb8498b901b131590ff178f8f1c6fc1e91f789bd53d31dc0f0e4"
+    "created": "2025-06-21T21:31:09.097Z",
+    "hash": "52ef0b72bf247cf64b10c940bf7a15265ad63fc19dc7ecd95fa40e2134774090"
   }
 }
