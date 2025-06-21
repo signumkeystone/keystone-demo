@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Keystone Login</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+       apiKey: "AIzaSyADj5950ZQdSNBGO-3vL3zMubXT44l0SS0",
+       authDomain: "keystone-auth-b9894.firebaseapp.com",
+       projectId: "keystone-auth-b9894",
+       storageBucket: "keystone-auth-b9894.firebasestorage.app",
+       messagingSenderId: "1041011797150",
+       appId: "1:1041011797150:web:2df8fa6ce74a739402df8f"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: auto; padding: 2em; }
+    input { display: block; margin-bottom: 1em; padding: 0.5em; width: 100%; }
+    button { padding: 0.5em 1em; }
+  </style>
+</head>
+<body>
+
+  <h2>Keystone Login</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Log In</button>
+  <button onclick="signup()">Sign Up</button>
+  <p id="status"></p>
+
+  <script>
+    const auth = firebase.auth();
+
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          document.getElementById('status').textContent = "✅ Logged in!";
+          window.location.href = "submit.html"; // redirect
+        })
+        .catch(err => {
+          document.getElementById('status').textContent = "❌ " + err.message;
+        });
+    }
+
+    function signup() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => {
+          document.getElementById('status').textContent = "✅ Signed up and logged in!";
+          window.location.href = "submit.html";
+        })
+        .catch(err => {
+          document.getElementById('status').textContent = "❌ " + err.message;
+        });
+    }
+  </script>
+</body>
+</html>
