@@ -4,11 +4,11 @@
     "title": "Man in the mirror",
     "year": "2025",
     "medium": "Oil on wooden board",
-    "dimensions": "40 × 50 cm",
+    "dimensions": "50 × 60 cm",
     "ownership": "Self-registered",
-    "image": "",
+    "image": "https://raw.githubusercontent.com/signumkeystone/keystone-demo/main/images/1750541462552-man-in-the-mirror.jpg",
     "verified": false,
-    "created": "2025-06-21T20:10:44.704Z",
-    "hash": "931830a5264378c89abf6207f3a006f787582c3bd57a948e2907553259eb22f9"
+    "created": "2025-06-21T21:31:09.097Z",
+    "hash": "52ef0b72bf247cf64b10c940bf7a15265ad63fc19dc7ecd95fa40e2134774090"
   }
 }
