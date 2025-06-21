@@ -3,88 +3,396 @@
 <head>
   <meta charset="UTF-8">
   <title>Keystone • Registry Admin</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script>
+  
+  <!-- Firebase v9 SDK - using proper imports -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
     // Initialize Firebase
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "...",
-      appId: "..."
+      apiKey: "AIzaSyADj5950ZQdSNBGO-3vL3zMubXT44l0SS0",
+      authDomain: "keystone-auth-b9894.firebaseapp.com",
+      projectId: "keystone-auth-b9894",
+      storageBucket: "keystone-auth-b9894.firebasestorage.app",
+      messagingSenderId: "1041011797150",
+      appId: "1:1041011797150:web:2df8fa6ce74a739402df8f"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Make auth and signOut available globally
+    window.auth = auth;
+    window.signOut = signOut;
+    window.onAuthStateChanged = onAuthStateChanged;
   </script>
+  
   <style>
-    body { font-family: sans-serif; max-width: 1000px; margin: auto; padding: 2em; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 0.5em; }
-    th { background: #f7f7f7; }
-    .hidden { display: none; }
+    body { 
+      font-family: sans-serif; 
+      max-width: 1200px; 
+      margin: auto; 
+      padding: 2em;
+      /* Warm gallery lighting */
+      background: linear-gradient(135deg, #f5f3f0 0%, #e8e2db 100%);
+      min-height: 100vh;
+      display: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2em;
+      padding: 1.5em;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #5d4e37;
+    }
+
+    .admin-info {
+      font-size: 0.9em;
+      color: #8b7355;
+      margin-right: 1em;
+    }
+
+    .logout-btn {
+      padding: 0.5em 1em;
+      background: #c17e5d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: #a66b4f;
+    }
+
+    .table-container {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      padding: 1.5em;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+    }
+
+    table { 
+      width: 100%; 
+      border-collapse: collapse;
+      margin: 0;
+    }
+
+    th, td { 
+      border: 1px solid #d4c4b0; 
+      padding: 0.75em 0.5em;
+      text-align: left;
+    }
+
+    th { 
+      background: linear-gradient(135deg, #e8ddd4 0%, #ddd0c4 100%);
+      color: #5d4e37;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:nth-child(even) {
+      background: rgba(248, 245, 240, 0.5);
+    }
+
+    tr:hover {
+      background: rgba(184, 153, 104, 0.1);
+    }
+
+    .delete-btn {
+      background: #c17e5d;
+      color: white;
+      border: none;
+      padding: 0.4em 0.8em;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+      transition: background 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      background: #a66b4f;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2em;
+      color: #8b7355;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      margin-top: 2em;
+    }
+
+    .error {
+      background: rgba(220, 53, 69, 0.1);
+      color: #721c24;
+      padding: 1em;
+      border-radius: 4px;
+      border-left: 4px solid #dc3545;
+      margin: 1em 0;
+    }
+
+    .stats {
+      display: flex;
+      gap: 1em;
+      margin-bottom: 1.5em;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.6);
+      padding: 1em;
+      border-radius: 6px;
+      flex: 1;
+      text-align: center;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-number {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #5d4e37;
+    }
+
+    .stat-label {
+      color: #8b7355;
+      font-size: 0.9em;
+    }
+
+    .image-preview {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #d4c4b0;
+    }
+
+    .no-image {
+      width: 60px;
+      height: 60px;
+      background: #f0f0f0;
+      border: 1px solid #d4c4b0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      color: #999;
+    }
   </style>
 </head>
-<body style="display:none">
-  <h1>🔍 Keystone Registry Admin</h1>
-  <p id="admin-info"></p>
-  <button onclick="logout()">Logout</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th><th>Artist</th><th>Title</th>
-        <th>Submitted by</th><th>Date</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="registry-table">
-      <!-- rows inserted here -->
-    </tbody>
-  </table>
+<body>
+  <div class="loading">
+    <p>🔐 Checking admin authorization...</p>
+  </div>
+
+  <div id="mainContent" style="display: none;">
+    <div class="header">
+      <h1>🔍 Keystone Registry Admin</h1>
+      <div style="display: flex; align-items: center;">
+        <span id="admin-info" class="admin-info"></span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats">
+      <!-- Stats will be populated here -->
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>ID</th>
+            <th>Artist</th>
+            <th>Title</th>
+            <th>Year</th>
+            <th>Medium</th>
+            <th>Submitted</th>
+            <th>Verified</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="registry-table">
+          <!-- rows inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <script>
-    const AUTHORIZED = ["you@yourdomain.com"]; // <— replace with your email(s)
+    const AUTHORIZED = ["your-admin@email.com"]; // Replace with your admin email(s)
 
-    firebase.auth().onAuthStateChanged(user => {
-      if (!user || !AUTHORIZED.includes(user.email)) {
-        window.location.href = "login.html";
-      } else {
-        document.getElementById('admin-info').textContent = `Signed in as ${user.email}`;
-        document.body.style.display = "block";
-        loadRegistry();
+    // Wait for Firebase to load
+    window.addEventListener('load', () => {
+      if (window.auth && window.onAuthStateChanged) {
+        window.onAuthStateChanged(window.auth, (user) => {
+          const loadingDiv = document.querySelector('.loading');
+          const mainContent = document.getElementById('mainContent');
+          
+          if (!user || !AUTHORIZED.includes(user.email)) {
+            console.log("❌ Not authorized, redirecting to login");
+            window.location.href = "login.html";
+          } else {
+            console.log("✅ Admin authorized:", user.email);
+            document.getElementById('admin-info').textContent = `Admin: ${user.email}`;
+            loadingDiv.style.display = 'none';
+            mainContent.style.display = 'block';
+            document.body.style.display = "block";
+            loadRegistry();
+          }
+        });
       }
     });
 
     function logout() {
-      firebase.auth().signOut().then(() => window.location.href = "login.html");
+      if (window.signOut && window.auth) {
+        window.signOut(window.auth).then(() => {
+          console.log("Admin signed out");
+          window.location.href = "login.html";
+        }).catch((error) => {
+          console.error("Sign out error:", error);
+        });
+      }
     }
 
     async function loadRegistry() {
       try {
-        const res = await fetch("registry.json");
-        const data = await res.json();
+        // Try to load from GitHub API instead of static file
+        const username = 'signumkeystone';
+        const repo = 'keystone-demo';
+        
+        // First, try to get the submissions directory
+        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/submissions`);
+        
+        if (!res.ok) {
+          throw new Error(`GitHub API error: ${res.status}`);
+        }
+        
+        const files = await res.json();
+        const jsonFiles = files.filter(file => file.name.endsWith('.json'));
+        
         const tbody = document.getElementById("registry-table");
+        const statsDiv = document.getElementById("stats");
+        tbody.innerHTML = '';
+        
+        let totalEntries = 0;
+        let verifiedEntries = 0;
+        let recentEntries = 0;
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-        Object.entries(data).forEach(([id, entry]) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${id}</td>
-            <td>${entry.artist}</td>
-            <td>${entry.title}</td>
-            <td>${entry.submitted_by || '—'}</td>
-            <td>${new Date(entry.created).toLocaleString()}</td>
-            <td>
-              <button onclick="deleteEntry('${id}')">🗑️ Delete</button>
-            </td>`;
-          tbody.appendChild(tr);
-        });
+        // Load each JSON file
+        for (const file of jsonFiles) {
+          try {
+            const fileRes = await fetch(file.download_url);
+            const data = await fileRes.json();
+            
+            Object.entries(data).forEach(([id, entry]) => {
+              totalEntries++;
+              if (entry.verified) verifiedEntries++;
+              
+              const createdDate = new Date(entry.created);
+              if (createdDate > oneWeekAgo) recentEntries++;
+              
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>
+                  ${entry.image ? 
+                    `<img src="${entry.image}" class="image-preview" alt="Artwork" onerror="this.style.display='none'">` :
+                    `<div class="no-image">No Image</div>`
+                  }
+                </td>
+                <td><code>${id}</code></td>
+                <td>${entry.artist || '—'}</td>
+                <td><strong>${entry.title || '—'}</strong></td>
+                <td>${entry.year || '—'}</td>
+                <td>${entry.medium || '—'}</td>
+                <td>${createdDate.toLocaleDateString()}</td>
+                <td>${entry.verified ? '✅ Yes' : '⏳ Pending'}</td>
+                <td>
+                  <button class="delete-btn" onclick="deleteEntry('${id}', '${file.name}')">🗑️ Delete</button>
+                </td>`;
+              tbody.appendChild(tr);
+            });
+          } catch (fileError) {
+            console.error(`Error loading file ${file.name}:`, fileError);
+          }
+        }
+
+        // Update stats
+        statsDiv.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-number">${totalEntries}</div>
+            <div class="stat-label">Total Entries</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${verifiedEntries}</div>
+            <div class="stat-label">Verified</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${recentEntries}</div>
+            <div class="stat-label">This Week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${totalEntries - verifiedEntries}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+        `;
+
+        if (totalEntries === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #8b7355; padding: 2em;">No entries found</td></tr>';
+        }
+
       } catch (err) {
-        alert("Failed to load registry: " + err.message);
+        console.error("Failed to load registry:", err);
+        document.getElementById("registry-table").innerHTML = 
+          `<tr><td colspan="9" class="error">Failed to load registry: ${err.message}</td></tr>`;
       }
     }
 
-    async function deleteEntry(id) {
-      if (!confirm(`Delete entry ${id}? This is irreversible.`)) return;
-      // For now, simply alert — backend deletion logic to be added later
-      alert(`❌ Delete not yet implemented: ${id}`);
+    async function deleteEntry(id, filename) {
+      if (!confirm(`Delete entry "${id}"? This action is irreversible.`)) return;
+      
+      alert(`❌ Delete functionality not yet implemented for: ${id}\nFile: ${filename}\n\nThis would require GitHub API write access with proper authentication.`);
+      
+      // TODO: Implement actual deletion with GitHub API
+      // Would need personal access token with repo write permissions
+      /*
+const token = 'your-github-token';
+const username = 'signumkeystone';
+const repo = 'keystone-demo';
+const path = `submissions/${filename}`;
+
+// First get the file SHA
+const getRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
+  headers: { Authorization: `token ${token}` }
+});
+const fileData = await getRes.json();
+
+// Then delete it
+const delRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
+  method: 'DELETE',
+  headers: { Authorization: `token ${token}` },
+  body: JSON.stringify({
+    message: `Delete entry: ${id}`,
+    sha: fileData.sha
+  })
+});
+      */
     }
   </script>
 </body>
