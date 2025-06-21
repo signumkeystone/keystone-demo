@@ -2,23 +2,14 @@
 <html>
 <head>
   <title>Keystone Login</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js"></script>
-  <script>
-    const firebaseConfig = {
-       apiKey: "AIzaSyADj5950ZQdSNBGO-3vL3zMubXT44l0SS0",
-       authDomain: "keystone-auth-b9894.firebaseapp.com",
-       projectId: "keystone-auth-b9894",
-       storageBucket: "keystone-auth-b9894.firebasestorage.app",
-       messagingSenderId: "1041011797150",
-       appId: "1:1041011797150:web:2df8fa6ce74a739402df8f"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
+  <!-- Firebase v8 SDK - using the correct CDN URLs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <style>
     body { font-family: sans-serif; max-width: 400px; margin: auto; padding: 2em; }
-    input { display: block; margin-bottom: 1em; padding: 0.5em; width: 100%; }
-    button { padding: 0.5em 1em; }
+    input { display: block; margin-bottom: 1em; padding: 0.5em; width: 100%; box-sizing: border-box; }
+    button { padding: 0.5em 1em; margin-right: 0.5em; }
+    #status { margin-top: 1em; }
   </style>
 </head>
 <body>
@@ -31,15 +22,35 @@
   <p id="status"></p>
 
   <script>
+    // Firebase configuration
+    const firebaseConfig = {
+       apiKey: "AIzaSyADj5950ZQdSNBGO-3vL3zMubXT44l0SS0",
+       authDomain: "keystone-auth-b9894.firebaseapp.com",
+       projectId: "keystone-auth-b9894",
+       storageBucket: "keystone-auth-b9894.firebasestorage.app",
+       messagingSenderId: "1041011797150",
+       appId: "1:1041011797150:web:2df8fa6ce74a739402df8f"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        document.getElementById('status').textContent = "❌ Please enter both email and password";
+        return;
+      }
+      
       auth.signInWithEmailAndPassword(email, password)
         .then(() => {
           document.getElementById('status').textContent = "✅ Logged in!";
-          window.location.href = "submit.html"; // redirect
+          setTimeout(() => {
+            window.location.href = "submit.html"; // redirect after a brief delay
+          }, 1000);
         })
         .catch(err => {
           document.getElementById('status').textContent = "❌ " + err.message;
@@ -49,15 +60,37 @@
     function signup() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        document.getElementById('status').textContent = "❌ Please enter both email and password";
+        return;
+      }
+      
+      if (password.length < 6) {
+        document.getElementById('status').textContent = "❌ Password must be at least 6 characters";
+        return;
+      }
+      
       auth.createUserWithEmailAndPassword(email, password)
         .then(() => {
           document.getElementById('status').textContent = "✅ Signed up and logged in!";
-          window.location.href = "submit.html";
+          setTimeout(() => {
+            window.location.href = "submit.html";
+          }, 1000);
         })
         .catch(err => {
           document.getElementById('status').textContent = "❌ " + err.message;
         });
     }
+
+    // Optional: Check if user is already logged in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("User already logged in:", user.email);
+        // Optionally redirect immediately if already logged in
+        // window.location.href = "submit.html";
+      }
+    });
   </script>
 </body>
 </html>
