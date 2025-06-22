@@ -1,399 +1,589 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Keystone • Registry Admin</title>
-  
-  <!-- Firebase v9 SDK - using proper imports -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-
-    // Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "",
-      authDomain: "k",
-      projectId: "",
-      storageBucket: "",
-      messagingSenderId: "",
-      appId: ""
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // Make auth and signOut available globally
-    window.auth = auth;
-    window.signOut = signOut;
-    window.onAuthStateChanged = onAuthStateChanged;
-  </script>
-  
+  <!-- Firebase v8 SDK - matching login.html -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <style>
     body { 
-      font-family: sans-serif; 
-      max-width: 1200px; 
-      margin: auto; 
-      padding: 2em;
-      /* Warm gallery lighting */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #f5f3f0 0%, #e8e2db 100%);
       min-height: 100vh;
-      display: none;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2em;
-      padding: 1.5em;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .header h1 {
       margin: 0;
-      color: #5d4e37;
-    }
-
-    .admin-info {
-      font-size: 0.9em;
-      color: #8b7355;
-      margin-right: 1em;
-    }
-
-    .logout-btn {
-      padding: 0.5em 1em;
-      background: #c17e5d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background: #a66b4f;
-    }
-
-    .table-container {
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 8px;
-      padding: 1.5em;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-      overflow-x: auto;
-    }
-
-    table { 
-      width: 100%; 
-      border-collapse: collapse;
-      margin: 0;
-    }
-
-    th, td { 
-      border: 1px solid #d4c4b0; 
-      padding: 0.75em 0.5em;
-      text-align: left;
-    }
-
-    th { 
-      background: linear-gradient(135deg, #e8ddd4 0%, #ddd0c4 100%);
-      color: #5d4e37;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-    }
-
-    tr:nth-child(even) {
-      background: rgba(248, 245, 240, 0.5);
-    }
-
-    tr:hover {
-      background: rgba(184, 153, 104, 0.1);
-    }
-
-    .delete-btn {
-      background: #c17e5d;
-      color: white;
-      border: none;
-      padding: 0.4em 0.8em;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.85em;
-      transition: background 0.3s ease;
-    }
-
-    .delete-btn:hover {
-      background: #a66b4f;
-    }
-
-    .loading {
-      text-align: center;
       padding: 2em;
-      color: #8b7355;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 8px;
-      margin-top: 2em;
     }
 
-    .error {
-      background: rgba(220, 53, 69, 0.1);
-      color: #721c24;
-      padding: 1em;
-      border-radius: 4px;
-      border-left: 4px solid #dc3545;
-      margin: 1em 0;
-    }
+```
+.container {
+  max-width: 1200px;
+  margin: auto;
+  background: white;
+  padding: 2em;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
 
-    .stats {
-      display: flex;
-      gap: 1em;
-      margin-bottom: 1.5em;
-    }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2em;
+  padding-bottom: 1em;
+  border-bottom: 2px solid #f0f0f0;
+}
 
-    .stat-card {
-      background: rgba(255, 255, 255, 0.6);
-      padding: 1em;
-      border-radius: 6px;
-      flex: 1;
-      text-align: center;
-      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-    }
+h1 {
+  color: #333;
+  margin: 0;
+  font-size: 2.2em;
+  font-weight: 600;
+}
 
-    .stat-number {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #5d4e37;
-    }
+.user-info {
+  color: #666;
+  font-size: 0.9em;
+  margin-bottom: 0.5em;
+}
 
-    .stat-label {
-      color: #8b7355;
-      font-size: 0.9em;
-    }
+.button-group {
+  display: flex;
+  gap: 1em;
+}
 
-    .image-preview {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 4px;
-      border: 1px solid #d4c4b0;
-    }
+button {
+  padding: 0.75em 1.5em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
 
-    .no-image {
-      width: 60px;
-      height: 60px;
-      background: #f0f0f0;
-      border: 1px solid #d4c4b0;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8em;
-      color: #999;
-    }
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background: #f8f9fa;
+  color: #333;
+  border: 2px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  font-size: 12px;
+  padding: 0.5em 1em;
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.registry-stats {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5em;
+  border-radius: 10px;
+  margin-bottom: 2em;
+  text-align: center;
+}
+
+.registry-stats h3 {
+  margin: 0 0 0.5em 0;
+  font-size: 1.8em;
+}
+
+.registry-stats p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.table-container {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 1.5em;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  min-width: 600px;
+}
+
+th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1em;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 1em;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+tr:hover {
+  background: #f8f9ff;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.entry-id {
+  font-family: 'Courier New', monospace;
+  background: #f0f0f0;
+  padding: 0.3em 0.6em;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #666;
+}
+
+.entry-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.entry-artist {
+  color: #666;
+  font-style: italic;
+}
+
+.entry-date {
+  font-size: 0.85em;
+  color: #888;
+}
+
+.image-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 2px solid #f0f0f0;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.image-thumbnail:hover {
+  transform: scale(1.1);
+  border-color: #667eea;
+}
+
+.no-image {
+  width: 60px;
+  height: 60px;
+  background: #f8f9fa;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 12px;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3em;
+  color: #666;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5em;
+  color: #333;
+}
+
+.loading {
+  text-align: center;
+  padding: 2em;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 1em;
+    text-align: center;
+  }
+  
+  .button-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  table {
+    font-size: 0.9em;
+  }
+  
+  th, td {
+    padding: 0.7em;
+  }
+}
+```
+
   </style>
 </head>
-
-<body>
-  <div class="loading">
-    <p>🔐 Checking admin authorization...</p>
-  </div>
-
-  <div id="mainContent" style="display: none;">
+<body style="display:none">
+  <div class="container">
     <div class="header">
-      <h1>🔍 Keystone Registry Admin</h1>
-      <div style="display: flex; align-items: center;">
-        <span id="admin-info" class="admin-info"></span>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+      <div>
+        <h1>🔍 Keystone Registry Admin</h1>
+        <p id="admin-info" class="user-info"></p>
+      </div>
+      <div class="button-group">
+        <button class="btn-primary" onclick="goToSubmit()">
+          ➕ Add New Entry
+        </button>
+        <button class="btn-secondary" onclick="logout()">
+          🚪 Logout
+        </button>
       </div>
     </div>
 
-    <div class="stats" id="stats">
-      <!-- Stats will be populated here -->
-    </div>
+```
+<div class="registry-stats">
+  <h3 id="entry-count">0</h3>
+  <p>Registered Artworks</p>
+</div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>ID</th>
-            <th>Artist</th>
-            <th>Title</th>
-            <th>Year</th>
-            <th>Medium</th>
-            <th>Submitted</th>
-            <th>Verified</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="registry-table">
-          <!-- rows inserted here -->
-        </tbody>
-      </table>
-    </div>
+<div class="table-container">
+  <div id="loading" class="loading">
+    <p>Loading registry...</p>
+  </div>
+  
+  <div id="empty-state" class="empty-state" style="display: none;">
+    <h3>No entries yet</h3>
+    <p>The registry is empty. Add your first artwork to get started!</p>
+    <button class="btn-primary" onclick="goToSubmit()" style="margin-top: 1em;">
+      ➕ Add First Entry
+    </button>
+  </div>
+
+  <table id="registry-table" style="display: none;">
+    <thead>
+      <tr id="table-header">
+        <!-- Headers will be dynamically generated -->
+      </tr>
+    </thead>
+    <tbody id="registry-tbody">
+      <!-- rows inserted here -->
+    </tbody>
+  </table>
+</div>
+```
+
   </div>
 
   <script>
-    const AUTHORIZED = ["your-admin@email.com"]; // Replace with your admin email(s)
+    // Firebase configuration - MUST match login.html exactly
+    const firebaseConfig = {
+       apiKey: "AIzaSyADj5950ZQdSNBGO-3vL3zMubXT44l0SS0",
+       authDomain: "keystone-auth-b9894.firebaseapp.com",
+       projectId: "keystone-auth-b9894",
+       storageBucket: "keystone-auth-b9894.firebasestorage.app",
+       messagingSenderId: "1041011797150",
+       appId: "1:1041011797150:web:2df8fa6ce74a739402df8f"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
 
-    // Wait for Firebase to load
-    window.addEventListener('load', () => {
-      if (window.auth && window.onAuthStateChanged) {
-        window.onAuthStateChanged(window.auth, (user) => {
-          const loadingDiv = document.querySelector('.loading');
-          const mainContent = document.getElementById('mainContent');
-          
-          if (!user || !AUTHORIZED.includes(user.email)) {
-            console.log("❌ Not authorized, redirecting to login");
-            window.location.href = "login.html";
-          } else {
-            console.log("✅ Admin authorized:", user.email);
-            document.getElementById('admin-info').textContent = `Admin: ${user.email}`;
-            loadingDiv.style.display = 'none';
-            mainContent.style.display = 'block';
-            document.body.style.display = "block";
-            loadRegistry();
-          }
-        });
+    const AUTHORIZED = ["sachawalker@me.com"]; // <— replace with your email(s)
+
+    firebase.auth().onAuthStateChanged(user => {
+      console.log("Auth state changed:", user);
+      if (!user) {
+        console.log("No user - redirecting to login");
+        window.location.href = "login.html";
+      } else if (!AUTHORIZED.includes(user.email)) {
+        console.log("User not authorized:", user.email, "Authorized:", AUTHORIZED);
+        window.location.href = "login.html";
+      } else {
+        console.log("User authorized:", user.email);
+        document.getElementById('admin-info').textContent = `Signed in as ${user.email}`;
+        document.body.style.display = "block";
+        loadRegistry();
       }
     });
 
     function logout() {
-      if (window.signOut && window.auth) {
-        window.signOut(window.auth).then(() => {
-          console.log("Admin signed out");
-          window.location.href = "login.html";
-        }).catch((error) => {
-          console.error("Sign out error:", error);
-        });
-      }
+      firebase.auth().signOut().then(() => window.location.href = "login.html");
+    }
+
+    function goToSubmit() {
+      window.location.href = "submit.html";
     }
 
     async function loadRegistry() {
       try {
-        // Try to load from GitHub API instead of static file
-        const username = 'signumkeystone';
-        const repo = 'keystone-demo';
+        const res = await fetch("registry.json");
+        const rawText = await res.text();
+        console.log("Raw JSON text:", rawText);
         
-        // First, try to get the submissions directory
-        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/submissions`);
-        
-        if (!res.ok) {
-          throw new Error(`GitHub API error: ${res.status}`);
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (parseErr) {
+          throw new Error(`JSON parsing failed: ${parseErr.message}`);
         }
         
-        const files = await res.json();
-        const jsonFiles = files.filter(file => file.name.endsWith('.json'));
+        console.log("Parsed data:", data);
+        console.log("Data type:", typeof data);
+        console.log("Data is array:", Array.isArray(data));
         
-        const tbody = document.getElementById("registry-table");
-        const statsDiv = document.getElementById("stats");
-        tbody.innerHTML = '';
+        // Handle different data structures
+        let entries;
+        if (Array.isArray(data)) {
+          // If it's an array, convert to object entries format
+          entries = data.map((item, index) => [index.toString(), item]);
+        } else if (typeof data === 'object' && data !== null) {
+          entries = Object.entries(data);
+        } else {
+          throw new Error(`Unexpected data type: ${typeof data}`);
+        }
         
-        let totalEntries = 0;
-        let verifiedEntries = 0;
-        let recentEntries = 0;
-        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-        // Load each JSON file
-        for (const file of jsonFiles) {
-          try {
-            const fileRes = await fetch(file.download_url);
-            const data = await fileRes.json();
-            
-            Object.entries(data).forEach(([id, entry]) => {
-              totalEntries++;
-              if (entry.verified) verifiedEntries++;
-              
-              const createdDate = new Date(entry.created);
-              if (createdDate > oneWeekAgo) recentEntries++;
-              
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>
-                  ${entry.image ? 
-                    `<img src="${entry.image}" class="image-preview" alt="Artwork" onerror="this.style.display='none'">` :
-                    `<div class="no-image">No Image</div>`
-                  }
-                </td>
-                <td><code>${id}</code></td>
-                <td>${entry.artist || '—'}</td>
-                <td><strong>${entry.title || '—'}</strong></td>
-                <td>${entry.year || '—'}</td>
-                <td>${entry.medium || '—'}</td>
-                <td>${createdDate.toLocaleDateString()}</td>
-                <td>${entry.verified ? '✅ Yes' : '⏳ Pending'}</td>
-                <td>
-                  <button class="delete-btn" onclick="deleteEntry('${id}', '${file.name}')">🗑️ Delete</button>
-                </td>`;
-              tbody.appendChild(tr);
-            });
-          } catch (fileError) {
-            console.error(`Error loading file ${file.name}:`, fileError);
-          }
+        console.log("Entries:", entries);
+        
+        // Hide loading
+        document.getElementById('loading').style.display = 'none';
+        
+        if (entries.length === 0) {
+          // Show empty state
+          document.getElementById('empty-state').style.display = 'block';
+          document.getElementById('entry-count').textContent = '0';
+          return;
         }
 
         // Update stats
-        statsDiv.innerHTML = `
-          <div class="stat-card">
-            <div class="stat-number">${totalEntries}</div>
-            <div class="stat-label">Total Entries</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">${verifiedEntries}</div>
-            <div class="stat-label">Verified</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">${recentEntries}</div>
-            <div class="stat-label">This Week</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">${totalEntries - verifiedEntries}</div>
-            <div class="stat-label">Pending</div>
-          </div>
-        `;
+        document.getElementById('entry-count').textContent = entries.length;
 
-        if (totalEntries === 0) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #8b7355; padding: 2em;">No entries found</td></tr>';
-        }
+        // Determine which columns have data - handle nested structure
+        const allFields = new Set();
+        entries.forEach(([id, entry]) => {
+          // Check if entry has submission data (from your auto-merge structure)
+          const dataToCheck = entry.submission || entry;
+          
+          Object.keys(dataToCheck).forEach(key => {
+            if (dataToCheck[key] !== null && dataToCheck[key] !== undefined && dataToCheck[key] !== '') {
+              allFields.add(key);
+            }
+          });
+          
+          // Also check top-level fields like approved_at, created_at
+          Object.keys(entry).forEach(key => {
+            if (key !== 'submission' && entry[key] !== null && entry[key] !== undefined && entry[key] !== '') {
+              allFields.add(key);
+            }
+          });
+        });
+
+        // Always include ID and actions, prioritize common fields
+        const priorityFields = ['title', 'artist', 'medium', 'dimensions', 'year', 'created_at', 'approved_at'];
+        const orderedFields = priorityFields.filter(field => allFields.has(field));
+        const remainingFields = Array.from(allFields).filter(field => !priorityFields.includes(field));
+        const columnsToShow = ['id', ...orderedFields, ...remainingFields, 'actions'];
+        
+        // Generate table headers
+        const headerRow = document.getElementById('table-header');
+        headerRow.innerHTML = '';
+        
+        columnsToShow.forEach(column => {
+          const th = document.createElement('th');
+          switch(column) {
+            case 'id':
+              th.textContent = 'ID';
+              break;
+            case 'artist':
+              th.textContent = 'Artist';
+              break;
+            case 'title':
+              th.textContent = 'Title';
+              break;
+            case 'medium':
+              th.textContent = 'Medium';
+              break;
+            case 'dimensions':
+              th.textContent = 'Dimensions';
+              break;
+            case 'year':
+              th.textContent = 'Year';
+              break;
+            case 'submitted_by':
+              th.textContent = 'Submitted By';
+              break;
+            case 'created_at':
+            case 'approved_at':
+              th.textContent = column === 'created_at' ? 'Submitted' : 'Approved';
+              break;
+            case 'created':
+              th.textContent = 'Date Added';
+              break;
+            case 'actions':
+              th.textContent = 'Actions';
+              break;
+            default:
+              th.textContent = column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
+          }
+          headerRow.appendChild(th);
+        });
+
+        // Generate table rows
+        const tbody = document.getElementById("registry-tbody");
+        tbody.innerHTML = '';
+
+        entries.forEach(([id, entry]) => {
+          const tr = document.createElement("tr");
+          
+          // Get the actual data (handle nested submission structure)
+          const submissionData = entry.submission || {};
+          const entryData = { ...entry, ...submissionData };
+          
+          columnsToShow.forEach(column => {
+            const td = document.createElement('td');
+            
+            if (column === 'id') {
+              td.innerHTML = `<span class="entry-id">${id}</span>`;
+            } else if (column === 'actions') {
+              td.innerHTML = `<button class="btn-danger" onclick="deleteEntry('${id}')">🗑️ Delete</button>`;
+            } else if (column === 'title') {
+              td.innerHTML = `<span class="entry-title">${entryData[column] || '—'}</span>`;
+            } else if (column === 'artist') {
+              td.innerHTML = `<span class="entry-artist">${entryData[column] || '—'}</span>`;
+            } else if (column === 'created' || column === 'created_at' || column === 'approved_at') {
+              const dateValue = entryData[column];
+              const date = dateValue ? new Date(dateValue).toLocaleString() : '—';
+              td.innerHTML = `<span class="entry-date">${date}</span>`;
+            } else if (column === 'image' || column === 'image_url' || column === 'photo' || column === 'picture') {
+              if (entryData[column] && entryData[column].trim()) {
+                td.innerHTML = `<img src="${entryData[column]}" alt="Artwork" class="image-thumbnail" onclick="openImageModal('${entryData[column]}', '${(entryData.title || 'Untitled').replace(/'/g, "\\'")}')">`;
+              } else {
+                td.innerHTML = `<div class="no-image">No Image</div>`;
+              }
+            } else {
+              td.innerHTML = entryData[column] || '—';
+            }
+            
+            tr.appendChild(td);
+          });
+          
+          tbody.appendChild(tr);
+        });
+
+        // Show the table
+        document.getElementById('registry-table').style.display = 'table';
 
       } catch (err) {
-        console.error("Failed to load registry:", err);
-        document.getElementById("registry-table").innerHTML = 
-          `<tr><td colspan="9" class="error">Failed to load registry: ${err.message}</td></tr>`;
+        document.getElementById('loading').innerHTML = `
+          <p style="color: #ff6b6b;">❌ Failed to load registry: ${err.message}</p>
+          <button class="btn-primary" onclick="loadRegistry()">Try Again</button>
+        `;
       }
     }
 
-    async function deleteEntry(id, filename) {
-      if (!confirm(`Delete entry "${id}"? This action is irreversible.`)) return;
-      
-      alert(`❌ Delete functionality not yet implemented for: ${id}\nFile: ${filename}\n\nThis would require GitHub API write access with proper authentication.`);
-      
-      // TODO: Implement actual deletion with GitHub API
-      // Would need personal access token with repo write permissions
-      /*
-const token = 'your-github-token';
-const username = 'signumkeystone';
-const repo = 'keystone-demo';
-const path = `submissions/${filename}`;
-
-// First get the file SHA
-const getRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
-  headers: { Authorization: `token ${token}` }
-});
-const fileData = await getRes.json();
-
-// Then delete it
-const delRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
-  method: 'DELETE',
-  headers: { Authorization: `token ${token}` },
-  body: JSON.stringify({
-    message: `Delete entry: ${id}`,
-    sha: fileData.sha
-  })
-});
-      */
+    async function deleteEntry(id) {
+      if (!confirm(`Delete entry ${id}? This is irreversible.`)) return;
+      // For now, simply alert — backend deletion logic to be added later
+      alert(`❌ Delete not yet implemented: ${id}`);
     }
+
+    function openImageModal(imageUrl, title) {
+      // Create modal overlay
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        cursor: pointer;
+      `;
+      
+      // Create image container
+      const imgContainer = document.createElement('div');
+      imgContainer.style.cssText = `
+        max-width: 90%;
+        max-height: 90%;
+        text-align: center;
+      `;
+      
+      // Create image
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = title;
+      img.style.cssText = `
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 10px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      `;
+      
+      // Create title
+      const titleEl = document.createElement('p');
+      titleEl.textContent = title;
+      titleEl.style.cssText = `
+        color: white;
+        margin-top: 1em;
+        font-size: 1.2em;
+        font-weight: 500;
+      `;
+      
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(titleEl);
+      modal.appendChild(imgContainer);
+      
+      // Close on click
+      modal.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+      
+      // Add to page
+      document.body.appendChild(modal);
+    }
+
+    // Debug logging
+    console.log("Firebase Auth initialized:", !!firebase.auth);
+    console.log("Current URL:", window.location.href);
   </script>
+
 </body>
 </html>
